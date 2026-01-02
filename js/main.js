@@ -5,6 +5,8 @@ let container;
 let balls = [];
 let lastTime = 0;
 let respawnQueue = 0; // Number of balls waiting to respawn
+// Shared ball radius (in px) controlled by slider
+let BALL_RADIUS = 10;
 
 // Dynamic screen dimensions
 let SCREEN_WIDTH;
@@ -39,8 +41,28 @@ function init() {
 
     // Create initial ball at center with random velocity
     const initialVelocity = Physics.randomVelocity(200, 400);
-    const initialBall = new Ball(SCREEN_CENTER_X, SCREEN_CENTER_Y, initialVelocity.vx, initialVelocity.vy);
+    const initialBall = new Ball(SCREEN_CENTER_X, SCREEN_CENTER_Y, initialVelocity.vx, initialVelocity.vy, BALL_RADIUS);
     balls.push(initialBall);
+
+    // Hook up ball size slider UI
+    const slider = document.getElementById('ballSizeSlider');
+    const valueDisplay = document.getElementById('ballSizeValue');
+    if (slider && valueDisplay) {
+        slider.value = BALL_RADIUS;
+        valueDisplay.textContent = BALL_RADIUS;
+
+        slider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value, 10);
+            BALL_RADIUS = val;
+            valueDisplay.textContent = val;
+
+            // Update existing balls to new radius and mass (mass ∝ area)
+            for (let b of balls) {
+                b.radius = BALL_RADIUS;
+                b.mass = Math.PI * b.radius * b.radius;
+            }
+        });
+    }
 
     // Handle window resize
     window.addEventListener('resize', handleResize);
@@ -158,7 +180,7 @@ function processRespawnQueue() {
         // Check if this position is safe (no collisions with existing balls)
         if (canSpawnAt(pos.x, pos.y)) {
             const velocity = Physics.randomVelocity(200, 400);
-            const newBall = new Ball(pos.x, pos.y, velocity.vx, velocity.vy);
+            const newBall = new Ball(pos.x, pos.y, velocity.vx, velocity.vy, BALL_RADIUS);
             balls.push(newBall);
             respawnQueue--;
             spawned++;
@@ -168,7 +190,7 @@ function processRespawnQueue() {
 
 // Check if a ball can safely spawn at the given position
 function canSpawnAt(x, y) {
-    const spawnRadius = 10; // Ball radius
+    const spawnRadius = BALL_RADIUS; // Ball radius
     const safetyMargin = 5; // Extra space to ensure no immediate collision
     const checkRadius = spawnRadius + safetyMargin;
 

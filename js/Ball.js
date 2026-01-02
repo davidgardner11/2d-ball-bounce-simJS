@@ -1,11 +1,12 @@
 class Ball {
-    constructor(x, y, vx, vy) {
+    constructor(x, y, vx, vy, radius = 10) {
         this.x = x;
         this.y = y;
         this.vx = vx;
         this.vy = vy;
-        this.radius = 10; // 20px diameter = 10px radius
-        this.mass = 1; // Uniform mass for all balls
+        this.radius = radius; // radius in pixels
+        // Mass proportional to area (density = 1)
+        this.mass = Math.PI * this.radius * this.radius;
     }
 
     update(dt) {
@@ -37,6 +38,6 @@ class Ball {
 
     // Create a copy of this ball
     clone() {
-        return new Ball(this.x, this.y, this.vx, this.vy);
+        return new Ball(this.x, this.y, this.vx, this.vy, this.radius);
     }
 }
