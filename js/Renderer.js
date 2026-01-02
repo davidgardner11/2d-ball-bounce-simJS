@@ -100,7 +100,7 @@ class Renderer {
         ctx.restore();
     }
 
-    drawAll(balls, container) {
+    drawAll(balls, container, respawnQueue) {
         this.clear();
         this.drawContainer(container);
 
@@ -109,16 +109,17 @@ class Renderer {
         }
 
         // Draw info text
-        this.drawInfo(balls);
+        this.drawInfo(balls, respawnQueue);
     }
 
-    drawInfo(balls) {
+    drawInfo(balls, respawnQueue) {
         const ctx = this.ctx;
 
         ctx.save();
         ctx.fillStyle = '#ffffff';
-        ctx.font = '16px Arial';
+        ctx.font = '18px Arial';
         ctx.fillText(`Balls: ${balls.length}`, 20, 30);
+        ctx.fillText(`Respawn Count: ${respawnQueue}`, 20, 55);
         ctx.restore();
     }
 }

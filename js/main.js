@@ -4,6 +4,7 @@ let renderer;
 let container;
 let balls = [];
 let lastTime = 0;
+let respawnQueue = 0; // Number of balls waiting to respawn
 
 // Dynamic screen dimensions
 let SCREEN_WIDTH;
@@ -82,7 +83,7 @@ function gameLoop(currentTime) {
     update(cappedDt);
 
     // Render frame
-    renderer.drawAll(balls, container);
+    renderer.drawAll(balls, container, respawnQueue);
 
     // Continue loop
     requestAnimationFrame(gameLoop);
@@ -118,42 +119,72 @@ function update(dt) {
 
     // Check for respawn conditions
     checkRespawns();
+
+    // Process respawn queue
+    processRespawnQueue();
 }
 
 // Check if any balls should respawn
 function checkRespawns() {
-    // Process one ball at a time to avoid overlapping spawns
-    for (let i = 0; i < balls.length; i++) {
+    // Check all balls to see if they should be added to respawn queue
+    for (let i = balls.length - 1; i >= 0; i--) {
         const ball = balls[i];
         const distance = ball.distanceFrom(SCREEN_CENTER_X, SCREEN_CENTER_Y);
 
         if (distance > CORNER_DISTANCE) {
-            respawnBall(i);
-            return; // Only respawn one ball per frame
+            // Remove the ball and add to respawn queue (each ball spawns 2 new balls)
+            balls.splice(i, 1);
+            respawnQueue += 2;
         }
     }
 }
 
-// Respawn a ball (replace with 2 new balls)
-function respawnBall(index) {
-    // Remove the old ball
-    balls.splice(index, 1);
+// Process respawn queue - try to spawn balls when there's space
+function processRespawnQueue() {
+    if (respawnQueue === 0) return;
 
-    // Spawn 2 new balls near the center, offset to avoid overlap
-    // Calculate offset positions (balls are 20px diameter, so use 25px offset)
-    const offset = 25; // Slightly more than ball diameter to ensure no overlap
+    // Calculate spawn positions
+    const offset = 25; // Offset from center to avoid overlap
+    const spawnPositions = [
+        { x: SCREEN_CENTER_X - offset, y: SCREEN_CENTER_Y },
+        { x: SCREEN_CENTER_X + offset, y: SCREEN_CENTER_Y }
+    ];
 
-    for (let i = 0; i < 2; i++) {
-        const velocity = Physics.randomVelocity(200, 400);
+    // Try to spawn up to 2 balls per frame (one pair)
+    let spawned = 0;
+    for (let i = 0; i < spawnPositions.length && spawned < 2 && respawnQueue > 0; i++) {
+        const pos = spawnPositions[i];
 
-        // Position balls on opposite sides of center
-        const xOffset = (i === 0) ? -offset : offset;
-        const x = SCREEN_CENTER_X + xOffset;
-        const y = SCREEN_CENTER_Y;
-
-        const newBall = new Ball(x, y, velocity.vx, velocity.vy);
-        balls.push(newBall);
+        // Check if this position is safe (no collisions with existing balls)
+        if (canSpawnAt(pos.x, pos.y)) {
+            const velocity = Physics.randomVelocity(200, 400);
+            const newBall = new Ball(pos.x, pos.y, velocity.vx, velocity.vy);
+            balls.push(newBall);
+            respawnQueue--;
+            spawned++;
+        }
     }
+}
+
+// Check if a ball can safely spawn at the given position
+function canSpawnAt(x, y) {
+    const spawnRadius = 10; // Ball radius
+    const safetyMargin = 5; // Extra space to ensure no immediate collision
+    const checkRadius = spawnRadius + safetyMargin;
+
+    // Check against all existing balls
+    for (let ball of balls) {
+        const dx = x - ball.x;
+        const dy = y - ball.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // If too close to another ball, can't spawn here
+        if (distance < checkRadius + ball.radius) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 // Start the simulation when page loads

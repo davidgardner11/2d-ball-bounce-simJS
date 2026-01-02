@@ -10,9 +10,31 @@ class Physics {
             return; // No collision
         }
 
+        // Handle overlapping balls (distance near zero)
+        if (distance < 0.001) {
+            // Push balls apart in a random direction to unstick them
+            const angle = Math.random() * Math.PI * 2;
+            const pushDistance = (ball1.radius + ball2.radius) / 2 + 0.5;
+            ball1.x -= Math.cos(angle) * pushDistance;
+            ball1.y -= Math.sin(angle) * pushDistance;
+            ball2.x += Math.cos(angle) * pushDistance;
+            ball2.y += Math.sin(angle) * pushDistance;
+            return;
+        }
+
         // Normalize the collision normal
         const nx = dx / distance;
         const ny = dy / distance;
+
+        // ALWAYS separate balls first to resolve overlap
+        const overlap = (ball1.radius + ball2.radius) - distance;
+        const separationX = (overlap / 2 + 0.1) * nx;
+        const separationY = (overlap / 2 + 0.1) * ny;
+
+        ball1.x -= separationX;
+        ball1.y -= separationY;
+        ball2.x += separationX;
+        ball2.y += separationY;
 
         // Relative velocity
         const dvx = ball1.vx - ball2.vx;
@@ -21,9 +43,9 @@ class Physics {
         // Relative velocity along the collision normal
         const dvn = dvx * nx + dvy * ny;
 
-        // Do not resolve if velocities are separating
+        // Only apply velocity change if balls are moving toward each other
         if (dvn > 0) {
-            return;
+            return; // Already separating
         }
 
         // Calculate impulse (for equal mass, simplified formula)
@@ -34,16 +56,6 @@ class Physics {
         ball1.vy -= impulse * ball2.mass * ny;
         ball2.vx += impulse * ball1.mass * nx;
         ball2.vy += impulse * ball1.mass * ny;
-
-        // Separate balls to prevent overlap
-        const overlap = (ball1.radius + ball2.radius) - distance;
-        const separationX = (overlap / 2) * nx;
-        const separationY = (overlap / 2) * ny;
-
-        ball1.x -= separationX;
-        ball1.y -= separationY;
-        ball2.x += separationX;
-        ball2.y += separationY;
     }
 
     // Handle ball-to-container collision
@@ -72,7 +84,7 @@ class Physics {
                 const toBallY = localPos.y - collision.closestPoint.y;
                 const dist = Math.sqrt(toBallX * toBallX + toBallY * toBallY);
 
-                if (dist === 0) continue; // Avoid division by zero
+                if (dist < 0.001) continue; // Avoid division by zero
 
                 // Normalized collision normal (pointing from wall to ball)
                 const localNormalX = toBallX / dist;
@@ -84,19 +96,21 @@ class Physics {
                     container.rotation
                 );
 
+                // Calculate penetration depth
+                const penetrationDepth = ball.radius - collision.distance;
+
+                // Always push ball away from wall first to resolve penetration
+                ball.x += globalNormal.x * (penetrationDepth + 0.5);
+                ball.y += globalNormal.y * (penetrationDepth + 0.5);
+
                 // Check if ball is moving toward the wall
                 const dotProduct = ball.vx * globalNormal.x + ball.vy * globalNormal.y;
 
-                // Only reflect if moving toward the wall (negative dot product)
+                // Only reflect velocity if moving toward the wall (negative dot product)
                 if (dotProduct < 0) {
                     // Reflect velocity
                     ball.vx -= 2 * dotProduct * globalNormal.x;
                     ball.vy -= 2 * dotProduct * globalNormal.y;
-
-                    // Push ball away from wall to prevent sticking/tunneling
-                    const penetrationDepth = ball.radius - collision.distance;
-                    ball.x += globalNormal.x * (penetrationDepth + 0.1);
-                    ball.y += globalNormal.y * (penetrationDepth + 0.1);
                 }
             }
         }
