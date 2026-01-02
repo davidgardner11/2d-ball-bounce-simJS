@@ -1,6 +1,6 @@
 # 2D Ball Bounce Physics Simulator
 
-A real-time physics simulation featuring bouncing balls inside a rotating container. Built with vanilla JavaScript, HTML5 Canvas, and CSS.
+A real-time physics simulator featuring bouncing balls inside a rotating container. Built with vanilla JavaScript, HTML5 Canvas, and CSS.
 
 ![Simulation Demo](screenshot.png)
 
@@ -76,7 +76,7 @@ Then open `http://localhost:8000` in your browser.
 
 1. **Open the project in VS Code**
    ```bash
-   code /Users/davidgardner/Code/2d-ball-bounce-simJS
+   code /Users/AAAHHHXXX/Code/2d-ball-bounce-simJS
    ```
 
 2. **Install recommended extensions** (optional but helpful):
