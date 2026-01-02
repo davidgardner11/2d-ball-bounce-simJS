@@ -1,6 +1,6 @@
 # 2D Ball Bounce Physics Simulator
 
-A real-time physics simulation featuring bouncing balls inside a rotating square container. Built with vanilla JavaScript, HTML5 Canvas, and CSS.
+A real-time physics simulation featuring bouncing balls inside a rotating container. Built with vanilla JavaScript, HTML5 Canvas, and CSS.
 
 ![Simulation Demo](screenshot.png)
 
