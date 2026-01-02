@@ -5,9 +5,9 @@ class Physics {
         const dy = ball2.y - ball1.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Check if balls are colliding
-        if (distance >= ball1.radius + ball2.radius) {
-            return; // No collision
+        // Check if balls are actually overlapping (not just touching)
+        if (distance >= ball1.radius + ball2.radius - 0.1) {
+            return; // No significant collision
         }
 
         // Handle overlapping balls (distance near zero)
@@ -28,8 +28,10 @@ class Physics {
 
         // ALWAYS separate balls first to resolve overlap
         const overlap = (ball1.radius + ball2.radius) - distance;
-        const separationX = (overlap / 2 + 0.1) * nx;
-        const separationY = (overlap / 2 + 0.1) * ny;
+        const minSeparation = 2.0; // Minimum separation distance
+        const separationDistance = Math.max(overlap / 2 + 1.0, minSeparation / 2);
+        const separationX = separationDistance * nx;
+        const separationY = separationDistance * ny;
 
         ball1.x -= separationX;
         ball1.y -= separationY;
@@ -43,15 +45,10 @@ class Physics {
         // Relative velocity along the collision normal
         const dvn = dvx * nx + dvy * ny;
 
-        // Only apply velocity change if balls are moving toward each other
-        if (dvn > 0) {
-            return; // Already separating
-        }
-
-        // Calculate impulse (for equal mass, simplified formula)
+        // Calculate impulse for elastic collision
         const impulse = 2 * dvn / (ball1.mass + ball2.mass);
 
-        // Apply impulse to velocities
+        // Apply impulse to velocities (always apply, not just when approaching)
         ball1.vx -= impulse * ball2.mass * nx;
         ball1.vy -= impulse * ball2.mass * ny;
         ball2.vx += impulse * ball1.mass * nx;
@@ -100,18 +97,16 @@ class Physics {
                 const penetrationDepth = ball.radius - collision.distance;
 
                 // Always push ball away from wall first to resolve penetration
-                ball.x += globalNormal.x * (penetrationDepth + 0.5);
-                ball.y += globalNormal.y * (penetrationDepth + 0.5);
+                // Ensure minimum separation to prevent tunneling
+                const minSeparation = 2.0;
+                const totalSeparation = Math.max(penetrationDepth + 1.0, minSeparation);
+                ball.x += globalNormal.x * totalSeparation;
+                ball.y += globalNormal.y * totalSeparation;
 
-                // Check if ball is moving toward the wall
+                // Always reflect velocity for collision response
                 const dotProduct = ball.vx * globalNormal.x + ball.vy * globalNormal.y;
-
-                // Only reflect velocity if moving toward the wall (negative dot product)
-                if (dotProduct < 0) {
-                    // Reflect velocity
-                    ball.vx -= 2 * dotProduct * globalNormal.x;
-                    ball.vy -= 2 * dotProduct * globalNormal.y;
-                }
+                ball.vx -= 2 * dotProduct * globalNormal.x;
+                ball.vy -= 2 * dotProduct * globalNormal.y;
             }
         }
     }
