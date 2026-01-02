@@ -12,9 +12,23 @@
     </div>
 
     <div class="controls">
-        <label for="ballSizeSlider">Ball radius:</label>
-        <input id="ballSizeSlider" type="range" min="5" max="80" step="1" value="10">
-        <span id="ballSizeValue">10</span> px
+        <div class="control-item">
+            <label for="ballSizeSlider">Ball radius:</label>
+            <input id="ballSizeSlider" type="range" min="5" max="80" step="1" value="10">
+            <span id="ballSizeValue">10</span> px
+        </div>
+
+        <div class="control-item">
+            <label for="containerSizeSlider">Container size:</label>
+            <input id="containerSizeSlider" type="range" min="100" max="800" step="10" value="400">
+            <span id="containerSizeValue">400</span> px
+        </div>
+
+        <div class="control-item">
+            <label for="holeSizeSlider">Hole size:</label>
+            <input id="holeSizeSlider" type="range" min="10" max="400" step="1" value="133">
+            <span id="holeSizeValue">133</span> px
+        </div>
     </div>
     <script src="js/Ball.js"></script>
     <script src="js/Container.js"></script>

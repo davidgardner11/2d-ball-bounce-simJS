@@ -44,9 +44,14 @@ function init() {
     const initialBall = new Ball(SCREEN_CENTER_X, SCREEN_CENTER_Y, initialVelocity.vx, initialVelocity.vy, BALL_RADIUS);
     balls.push(initialBall);
 
-    // Hook up ball size slider UI
+    // Hook up ball size, container size, and hole size slider UI
     const slider = document.getElementById('ballSizeSlider');
     const valueDisplay = document.getElementById('ballSizeValue');
+    const containerSlider = document.getElementById('containerSizeSlider');
+    const containerDisplay = document.getElementById('containerSizeValue');
+    const holeSlider = document.getElementById('holeSizeSlider');
+    const holeDisplay = document.getElementById('holeSizeValue');
+
     if (slider && valueDisplay) {
         slider.value = BALL_RADIUS;
         valueDisplay.textContent = BALL_RADIUS;
@@ -61,6 +66,53 @@ function init() {
                 b.radius = BALL_RADIUS;
                 b.mass = Math.PI * b.radius * b.radius;
             }
+        });
+    }
+
+    // Initialize container and hole sliders
+    if (containerSlider && containerDisplay) {
+        containerSlider.value = container.size;
+        containerDisplay.textContent = container.size;
+
+        // Ensure hole slider max equals container size
+        if (holeSlider) {
+            holeSlider.max = container.size;
+            // If hole slider value is larger than container size, clamp it
+            if (parseInt(holeSlider.value, 10) > container.size) {
+                holeSlider.value = container.size;
+            }
+            holeDisplay.textContent = holeSlider.value;
+            container.gapLength = parseInt(holeSlider.value, 10);
+        }
+
+        containerSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value, 10);
+            const oldSize = container.size;
+            const scaleFactor = val / oldSize;
+            container.size = val;
+            containerDisplay.textContent = val;
+
+            // Scale the gap length proportionally with the container size
+            container.gapLength *= scaleFactor;
+
+            // Update hole slider max and scale its value proportionally
+            if (holeSlider) {
+                holeSlider.max = val;
+                const scaledHoleValue = Math.min(container.gapLength, val);
+                holeSlider.value = Math.round(scaledHoleValue);
+                holeDisplay.textContent = holeSlider.value;
+            }
+        });
+    }
+
+    if (holeSlider && holeDisplay) {
+        // Initialize display if not already set
+        holeDisplay.textContent = holeSlider.value;
+
+        holeSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value, 10);
+            holeDisplay.textContent = val;
+            container.gapLength = val;
         });
     }
 
