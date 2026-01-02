@@ -44,7 +44,7 @@ function init() {
     const initialBall = new Ball(SCREEN_CENTER_X, SCREEN_CENTER_Y, initialVelocity.vx, initialVelocity.vy, BALL_RADIUS);
     balls.push(initialBall);
 
-    // Hook up ball size, container size, and hole size slider UI
+    // Hook up ball size, container size, hole size, and spin rate slider UI
     const slider = document.getElementById('ballSizeSlider');
     const valueDisplay = document.getElementById('ballSizeValue');
     const containerSlider = document.getElementById('containerSizeSlider');
@@ -113,6 +113,22 @@ function init() {
             const val = parseInt(e.target.value, 10);
             holeDisplay.textContent = val;
             container.gapLength = val;
+        });
+    }
+
+    // Hook up spin rate slider UI
+    const spinRateSlider = document.getElementById('spinRateSlider');
+    const spinRateDisplay = document.getElementById('spinRateValue');
+
+    if (spinRateSlider && spinRateDisplay) {
+        // Initialize with current rotation speed
+        spinRateSlider.value = container.rotationSpeed;
+        spinRateDisplay.textContent = container.rotationSpeed.toFixed(2);
+
+        spinRateSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            spinRateDisplay.textContent = val.toFixed(2);
+            container.rotationSpeed = val;
         });
     }
 
